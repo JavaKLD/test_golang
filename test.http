@@ -1,0 +1,9 @@
+POST localhost:8080/schedule
+Content-Type: application/json
+
+{
+  "aid_name": "парацетамол",
+  "aid_per_day": 5,
+  "user_id": 12357,
+  "duration": 30
+}
