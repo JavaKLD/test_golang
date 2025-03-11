@@ -1,7 +1,7 @@
 package database
 
 import (
-	"dolittle2/internal/models"
+
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func InitDB() (*gorm.DB, *gorm.DB) {
+func InitDB() (*gorm.DB, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -28,11 +28,6 @@ func InitDB() (*gorm.DB, *gorm.DB) {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect db",err)
-	}
-
-	err = db.AutoMigrate(&models.Schedule{})
-	if err != nil {
-		log.Fatal("Failed to migrate db",err)
 	}
 
 	return db, nil

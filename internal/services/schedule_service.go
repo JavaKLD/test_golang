@@ -4,7 +4,6 @@ import (
 	"dolittle2/internal/models"
 	"dolittle2/internal/repos"
 	"errors"
-	"log"
 	"time"
 )
 
@@ -17,10 +16,9 @@ func NewService(repo *repos.ScheduleRepo) *ScheduleService {
 }
 
 func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint, error) {
-	now := time.Now()
-	hour := now.Hour()
+	hpur := time.Now().Hour()
 
-	if hour < 8 || hour >= 22 {
+	if hpur < 8 || hpur > 22 {
 		return 0, errors.New("Лекарства можно принимать только с 8:00 до 22:00")
 	}
 

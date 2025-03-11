@@ -31,7 +31,8 @@ func (r *ScheduleRepo) FindByUserID(userID uint) ([]uint, error) {
 
 func (r * ScheduleRepo) FindSchedule(userID, scheduleID uint) (*models.Schedule, error) {
 	var schedule models.Schedule
-	if err := r.db.Where("user_id = ? AND id = ?", userID,scheduleID).First(&schedule).Error; err != nil {
+	err := r.db.Where("user_id = ? AND id = ?", userID,scheduleID).First(&schedule).Error
+	if err != nil {
 		return nil, err
 	}
 	return &schedule, nil

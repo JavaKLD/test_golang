@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type ScheduleController struct {
@@ -18,30 +19,32 @@ func NewScheduleController(service *services.ScheduleService) *ScheduleControlle
 
 func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	var schedule models.Schedule
-	if err := ctx.Bind(&schedule); err != nil {
+	err := ctx.Bind(&schedule);
+	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неправильный формат запроса"})
 	}
+
 	id, err := c.Service.CreateSchedule(&schedule)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err})
+		return ctx.JSON(http.StatusInternalServerError, "Лекарства принимаются с 8 до 22")
 	}
 	return ctx.JSON(http.StatusOK, map[string]uint{"id": id})
 }
 
 func (c *ScheduleController) UserSchedule (ctx echo.Context) error {
-	userIDstr := ctx.QueryParam("user_id")
-	if userIDstr == "" {
+	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
+	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
 	}
 
-	userID, err := strconv.ParseUint(userIDstr, 10, 32)
+	userID, err := strconv.ParseUint(queryParam, 10, 32)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неверный формат user_id"})
 	}
 
 	scheduleID, err := c.Service.FindByUserID(uint(userID))
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "не удаось получить данные"})
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "не удалось получить данные"})
 	}
 
 	if len(scheduleID) == 0 {

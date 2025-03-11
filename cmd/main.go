@@ -5,6 +5,7 @@ import (
 	"dolittle2/internal/database"
 	"dolittle2/internal/repos"
 	"dolittle2/internal/services"
+	"dolittle2/migrations"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"log"
@@ -17,6 +18,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Database connection failed %v", err)
 	}
+
+	err = migrations.Migration(db)
+	if err != nil {
+		log.Fatal("Ошибка миграции", err)
+	}
+
 	repo := repos.NewScheduleRepo(db)
 	service := services.NewService(repo)
 	controller := controllers.NewScheduleController(service)
@@ -25,6 +32,7 @@ func main() {
 	e := echo.New()
 
 	e.POST("/schedule", controller.CreateSchedule)
+	e.GET("/schedules?user_id=", controller.UserSchedule)
 
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("failed to start server", "error", err)
