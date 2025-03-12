@@ -60,3 +60,15 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint) ([]time.Time
 
 	return scheduleTimes, nil
 }
+
+func (s *ScheduleService) GetNextTakings(userID uint, period time.Duration) ([]models.Schedule, error) {
+	now := time.Now()
+	end := now.Add(period)
+
+	schedule, err := s.Repo.NextTakings(userID, now, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return schedule, nil
+}
