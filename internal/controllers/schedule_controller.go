@@ -3,10 +3,12 @@ package controllers
 import (
 	"dolittle2/internal/models"
 	"dolittle2/internal/services"
+	"dolittle2/internal/utils"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ScheduleController struct {
@@ -23,6 +25,8 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неправильный формат запроса"})
 	}
+
+	schedule.Create_at = utils.RoundTime(time.Now())
 
 	id, err := c.Service.CreateSchedule(&schedule)
 	if err != nil {
@@ -51,5 +55,37 @@ func (c *ScheduleController) UserSchedule (ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, []uint{})
 	}
 
-	return ctx.JSON(http.StatusOK, scheduleID)
+	return ctx.JSON(http.StatusOK, map[string][]uint{"schedules": scheduleID})
+}
+
+func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
+	queryParamID := strings.TrimSpace(ctx.QueryParam("user_id"))
+	queryParamSchedule := strings.TrimSpace(ctx.QueryParam("schedule_id"))
+
+	if queryParamID == "" || queryParamSchedule == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Не указан user_id или schedule_id"})
+	}
+
+	userID, err := strconv.ParseUint(queryParamID, 10, 32)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат user_id"})
+	}
+
+	scheduleID, err := strconv.ParseUint(queryParamSchedule, 10, 32)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат schedule_id"})
+	}
+
+	scheduleTimes, err := c.Service.GetDailySchedule(uint(userID), uint(scheduleID))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка вывода графика приема лекарств"})
+	}
+
+	var formattedTimes []string
+	for _, t := range scheduleTimes {
+		formattedTimes = append(formattedTimes, t.Format("15:04"))
+	}
+
+	return ctx.JSON(http.StatusOK, map[string][]string{"schedule": formattedTimes})
+
 }

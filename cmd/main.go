@@ -32,7 +32,8 @@ func main() {
 	e := echo.New()
 
 	e.POST("/schedule", controller.CreateSchedule)
-	e.GET("/schedules?user_id=", controller.UserSchedule)
+	e.GET("/schedules", controller.UserSchedule)
+	e.GET("/schedule", controller.GetSchedule)
 
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("failed to start server", "error", err)
