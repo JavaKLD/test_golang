@@ -4,11 +4,12 @@ import (
 	"dolittle2/internal/models"
 	"dolittle2/internal/services"
 	"dolittle2/internal/utils"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
 
 type ScheduleController struct {
@@ -21,7 +22,7 @@ func NewScheduleController(service *services.ScheduleService) *ScheduleControlle
 
 func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	var schedule models.Schedule
-	err := ctx.Bind(&schedule);
+	err := ctx.Bind(&schedule)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неправильный формат запроса"})
 	}
@@ -35,7 +36,7 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]uint{"id": id})
 }
 
-func (c *ScheduleController) UserSchedule (ctx echo.Context) error {
+func (c *ScheduleController) UserSchedule(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
@@ -88,4 +89,24 @@ func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, map[string][]string{"schedule": formattedTimes})
 
+}
+
+func (c *ScheduleController) GetNextTakings(ctx echo.Context) error {
+	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
+
+	if queryParam == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Отсутствует user_id"})
+	}
+
+	userID, err := strconv.ParseUint(queryParam, 10, 32)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат user_id"})
+	}
+
+	nextTakings, err := c.Service.GetNextTakings(uint(userID))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка получения данных"})
+	}
+
+	return ctx.JSON(http.StatusOK, map[string][]models.Schedule{"schedule": nextTakings})
 }

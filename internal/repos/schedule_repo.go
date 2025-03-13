@@ -2,6 +2,8 @@ package repos
 
 import (
 	"dolittle2/internal/models"
+	"fmt"
+
 	"gorm.io/gorm"
 )
 
@@ -20,20 +22,31 @@ func (r *ScheduleRepo) CreateSchedule(schedule *models.Schedule) (uint, error) {
 	return schedule.ID, nil
 }
 
-
 func (r *ScheduleRepo) FindByUserID(userID uint) ([]uint, error) {
 	var scheduleID []uint
-	if err := r.db.Model(&models.Schedule{}).Where("user_id = ?", userID).Pluck("id",&scheduleID ).Error; err != nil {
+	err := r.db.Model(&models.Schedule{}).Where("user_id = ?", userID).Pluck("id", &scheduleID).Error
+	if err != nil {
 		return nil, err
 	}
 	return scheduleID, nil
 }
 
-func (r * ScheduleRepo) FindSchedule(userID, scheduleID uint) (*models.Schedule, error) {
+func (r *ScheduleRepo) FindSchedule(userID, scheduleID uint) (*models.Schedule, error) {
 	var schedule models.Schedule
-	err := r.db.Where("user_id = ? AND id = ?", userID,scheduleID).First(&schedule).Error
+	err := r.db.Where("user_id = ? AND id = ?", userID, scheduleID).First(&schedule).Error
 	if err != nil {
 		return nil, err
 	}
 	return &schedule, nil
+}
+
+func (r *ScheduleRepo) NextTakings(userID uint) ([]models.Schedule, error) {
+	var schedules []models.Schedule
+	err := r.db.Where("user_id = ?", userID).Find(&schedules).Error
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Schedules", schedules)
+	return schedules, nil
 }

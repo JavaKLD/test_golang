@@ -7,10 +7,11 @@ import (
 	"dolittle2/internal/services"
 	"dolittle2/migrations"
 	"errors"
-	"github.com/labstack/echo/v4"
 	"log"
 	"log/slog"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
@@ -28,16 +29,14 @@ func main() {
 	service := services.NewService(repo)
 	controller := controllers.NewScheduleController(service)
 
-
 	e := echo.New()
 
 	e.POST("/schedule", controller.CreateSchedule)
 	e.GET("/schedules", controller.UserSchedule)
 	e.GET("/schedule", controller.GetSchedule)
+	e.GET("/next_takings", controller.GetNextTakings)
 
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("failed to start server", "error", err)
 	}
 }
-
-
