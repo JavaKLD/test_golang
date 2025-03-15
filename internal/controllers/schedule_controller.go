@@ -108,5 +108,5 @@ func (c *ScheduleController) GetNextTakings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка получения данных"})
 	}
 
-	return ctx.JSON(http.StatusOK, map[string][]models.Schedule{"schedule": nextTakings})
+	return ctx.JSON(http.StatusOK, map[string]map[string][]string{"schedule": nextTakings})
 }
