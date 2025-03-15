@@ -2,7 +2,6 @@ package repos
 
 import (
 	"dolittle2/internal/models"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -47,6 +46,5 @@ func (r *ScheduleRepo) NextTakings(userID uint) ([]models.Schedule, error) {
 		return nil, err
 	}
 
-	fmt.Println("Schedules", schedules)
 	return schedules, nil
 }

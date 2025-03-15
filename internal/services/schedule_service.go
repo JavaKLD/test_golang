@@ -1,12 +1,13 @@
 package services
 
 import (
+	//"dolittle2/internal/config"
 	"dolittle2/internal/config"
 	"dolittle2/internal/models"
 	"dolittle2/internal/repos"
 	"dolittle2/internal/utils"
 	"errors"
-	"fmt"
+	"log"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint) ([]time.Time
 	return utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
 }
 
-func (s *ScheduleService) GetNextTakings(userID uint) ([]models.Schedule, error) {
+func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, error) {
 	now := time.Now()
 	end := now.Add(config.LoadConfig())
 
@@ -54,23 +55,28 @@ func (s *ScheduleService) GetNextTakings(userID uint) ([]models.Schedule, error)
 	if err != nil {
 		return nil, err
 	}
-
-	var nextTakings []models.Schedule
+	nextTakings := make(map[string][]string)
 
 	for _, schedule := range schedules {
 		times, err := utils.GenerateScheduleTimes(now, schedule.Aid_per_day)
 		if err != nil {
-			return nil, err
+			log.Fatal("Ошибка генерации расписания", err)
 		}
 
-		for _, t := range times {
-			if t.After(now) && t.Before(end) {
-				nextTakings = append(nextTakings, schedule)
-				break
+		var nextPer []time.Time
+		for _, takes := range times {
+			if (takes.Hour() > end.Hour()) && (takes.Hour() < now.Hour()) {
+				nextPer = append(nextPer, takes)
 			}
+
 		}
+
+		var formattedTimes []string
+		for _, t := range nextPer {
+			formattedTimes = append(formattedTimes, t.Format("15:04"))
+		}
+
+		nextTakings[schedule.Aid_name] = formattedTimes
 	}
-	fmt.Println("Service", schedules)
-	fmt.Println("Servoce", nextTakings)
 	return nextTakings, nil
 }
