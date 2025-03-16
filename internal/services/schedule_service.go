@@ -20,6 +20,15 @@ func NewService(repo *repos.ScheduleRepo) *ScheduleService {
 }
 
 func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint, error) {
+	exists, err := s.Repo.AidNameExists(schedule.Aid_name, schedule.UserID)
+	if err != nil {
+		return 0, err
+	}
+
+	if exists {
+		return 0, errors.New("Запись с таким именем для пользователя уже существует")
+	}
+
 	hpur := time.Now().Hour()
 
 	if hpur < 8 || hpur > 22 {

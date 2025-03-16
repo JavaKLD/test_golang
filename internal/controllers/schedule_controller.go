@@ -31,7 +31,11 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 
 	id, err := c.Service.CreateSchedule(&schedule)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Лекарства принимаются с 8 до 22")
+		if err.Error() == "Запись с таким именем для пользователя уже существует" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Запись с таким aid_name для данного пользователя уже существует"})
+		} else {
+			return ctx.JSON(http.StatusInternalServerError, "Лекарства принимаются с 8 до 22")
+		}
 	}
 	return ctx.JSON(http.StatusOK, map[string]uint{"id": id})
 }

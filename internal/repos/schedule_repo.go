@@ -15,10 +15,23 @@ func NewScheduleRepo(db *gorm.DB) *ScheduleRepo {
 }
 
 func (r *ScheduleRepo) CreateSchedule(schedule *models.Schedule) (uint, error) {
-	if err := r.db.Create(schedule).Error; err != nil {
+	err := r.db.Create(schedule).Error
+	if err != nil {
 		return 0, err
 	}
+
 	return schedule.ID, nil
+}
+
+func (r *ScheduleRepo) AidNameExists(aidName string, userID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.Schedule{}).
+		Where("aid_name = ? AND user_id = ?", aidName, userID).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r *ScheduleRepo) FindByUserID(userID uint) ([]uint, error) {
