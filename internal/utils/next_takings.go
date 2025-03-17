@@ -11,6 +11,15 @@ func GenerateScheduleTimes(day time.Time, timesPerDay int) ([]time.Time, error) 
 	}
 
 	var scheduleTimes []time.Time
+	startTime := time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
+	endTime := time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
+	now := time.Now()
+
+	if now.After(endTime) {
+		day = day.AddDate(0, 0, 1)
+		startTime = time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
+		endTime = time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
+	}
 
 	if timesPerDay == 24 { // каждый час
 		for i := 0; i < 24; i++ {
@@ -18,8 +27,8 @@ func GenerateScheduleTimes(day time.Time, timesPerDay int) ([]time.Time, error) 
 			scheduleTimes = append(scheduleTimes, appointmentTime)
 		}
 	} else {
-		startTime := time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
-		endTime := time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
+		startTime = time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
+		endTime = time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
 
 		interval := (endTime.Sub(startTime)) / time.Duration(timesPerDay)
 

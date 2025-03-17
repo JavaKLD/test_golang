@@ -64,6 +64,7 @@ func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, erro
 	if err != nil {
 		return nil, err
 	}
+
 	nextTakings := make(map[string][]string)
 
 	for _, schedule := range schedules {
@@ -73,9 +74,15 @@ func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, erro
 		}
 
 		var nextPer []time.Time
-		for _, takes := range times {
-			if takes.After(now) && takes.Before(end) {
-				nextPer = append(nextPer, takes)
+		log.Println("Creat", schedule.Create_at)
+		createEndTime := schedule.Create_at.Add(time.Duration(schedule.Duration*24) * time.Hour)
+		log.Println("Test", createEndTime)
+		log.Println("end", end)
+
+		for _, t := range times {
+			log.Println("times", t)
+			if t.After(now) && t.Before(end) && t.Before(createEndTime) {
+				nextPer = append(nextPer, t)
 			}
 		}
 

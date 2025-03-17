@@ -32,7 +32,7 @@ func main() {
 	e := echo.New()
 
 	e.POST("/schedule", controller.CreateSchedule)
-	e.GET("/schedules", controller.UserSchedule)
+	e.GET("/schedules", controller.GetUserSchedule)
 	e.GET("/schedule", controller.GetSchedule)
 	e.GET("/next_takings", controller.GetNextTakings)
 

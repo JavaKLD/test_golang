@@ -40,7 +40,7 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]uint{"id": id})
 }
 
-func (c *ScheduleController) UserSchedule(ctx echo.Context) error {
+func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
