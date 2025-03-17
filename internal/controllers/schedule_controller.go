@@ -109,6 +109,9 @@ func (c *ScheduleController) GetNextTakings(ctx echo.Context) error {
 
 	nextTakings, err := c.Service.GetNextTakings(uint(userID))
 	if err != nil {
+		if err.Error() == "Нет ближайших приемов" {
+			return ctx.JSON(http.StatusOK, map[string]string{"message": "Нет ближайших приемов"})
+		}
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка получения данных"})
 	}
 

@@ -74,10 +74,9 @@ func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, erro
 
 		var nextPer []time.Time
 		for _, takes := range times {
-			if (takes.Hour() > end.Hour()) && (takes.Hour() < now.Hour()) {
+			if takes.After(now) && takes.Before(end) {
 				nextPer = append(nextPer, takes)
 			}
-
 		}
 
 		var formattedTimes []string
@@ -85,7 +84,14 @@ func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, erro
 			formattedTimes = append(formattedTimes, t.Format("15:04"))
 		}
 
-		nextTakings[schedule.Aid_name] = formattedTimes
+		if formattedTimes != nil {
+			nextTakings[schedule.Aid_name] = formattedTimes
+		}
 	}
+
+	if len(nextTakings) == 0 {
+		return nil, errors.New("Нет ближайших приемов")
+	}
+
 	return nextTakings, nil
 }
