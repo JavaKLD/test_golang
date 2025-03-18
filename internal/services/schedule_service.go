@@ -74,13 +74,9 @@ func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, erro
 		}
 
 		var nextPer []time.Time
-		log.Println("Creat", schedule.Create_at)
 		createEndTime := schedule.Create_at.Add(time.Duration(schedule.Duration*24) * time.Hour)
-		log.Println("Test", createEndTime)
-		log.Println("end", end)
 
 		for _, t := range times {
-			log.Println("times", t)
 			if t.After(now) && t.Before(end) && t.Before(createEndTime) {
 				nextPer = append(nextPer, t)
 			}
