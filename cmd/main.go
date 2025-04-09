@@ -36,7 +36,9 @@ func main() {
 	e.GET("/schedule", controller.GetSchedule)
 	e.GET("/next_takings", controller.GetNextTakings)
 
-	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	err = e.Start(":8080")
+
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		slog.Error("failed to start server", "error", err)
 	}
 }
