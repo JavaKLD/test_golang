@@ -32,12 +32,15 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	id, err := c.Service.CreateSchedule(&schedule)
 	if err != nil {
 		if err.Error() == "Запись с таким именем для пользователя уже существует" {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Запись с таким aid_name для данного пользователя уже существует"})
+			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Запись с таким aid_name для данного пользователя уже существует"})
 		} else {
-			return ctx.JSON(http.StatusInternalServerError, "Лекарства принимаются с 8 до 22")
+			return ctx.JSON(http.StatusUnprocessableEntity, "Лекарства принимаются с 8 до 22")
 		}
 	}
-	return ctx.JSON(http.StatusOK, map[string]uint{"id": id})
+	return ctx.JSON(http.StatusCreated, map[string]interface{}{
+		"id":      id,
+		"message": "Запись создана",
+	})
 }
 
 func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
@@ -60,7 +63,10 @@ func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
 		return ctx.JSON(http.StatusOK, []uint{})
 	}
 
-	return ctx.JSON(http.StatusOK, map[string][]uint{"schedules": scheduleID})
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"schedules": scheduleID,
+		"message":   "Успешный ответ с расписанием",
+	})
 }
 
 func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
