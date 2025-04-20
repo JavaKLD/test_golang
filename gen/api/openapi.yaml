@@ -1,0 +1,126 @@
+openapi: 3.1.1
+info:
+  description: API для работы с расписанием приемов лекарств
+  title: Medical schedule API
+  version: "1.0"
+servers:
+- url: http://localhost:8080
+paths:
+  /schedule:
+    get:
+      operationId: getSchedule
+      parameters:
+      - explode: true
+        in: query
+        name: user_id
+        required: true
+        schema:
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: schedule_id
+        required: true
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          description: Расписание получено
+        "400":
+          description: Неверный формат запроса
+        "500":
+          description: Ошибка сервера
+      summary: Получить расписание по ID
+    post:
+      operationId: createSchedule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleRequest'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+          description: Запись создана
+        "400":
+          description: Неверный формат запроса
+        "409":
+          description: Запись с таким именем для пользователя уже существует
+        "422":
+          description: Лекарства принимаются с 8 до 22
+      summary: Создать расписание приемов лекарства
+  /schedules:
+    get:
+      operationId: getUserSchedule
+      parameters:
+      - explode: true
+        in: query
+        name: user_id
+        required: true
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          description: Расписания пользователя
+        "400":
+          description: Неверный формат запроса
+        "500":
+          description: Ошибка сервера
+      summary: Получить расписание пользователя
+  /next_takings:
+    get:
+      operationId: getNextTakings
+      parameters:
+      - explode: true
+        in: query
+        name: user_id
+        required: true
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          description: Список следующих приемов
+        "400":
+          description: Неверный формат запроса
+        "500":
+          description: Ошибка сервера
+      summary: Получить график на следующие приемы лекарств
+components:
+  schemas:
+    ScheduleRequest:
+      example:
+        aid_name: Парацетамол
+        aid_per_day: 4
+        duration: 10
+        user_id: 11023803215
+      properties:
+        aid_name:
+          example: Парацетамол
+          type: string
+        aid_per_day:
+          example: 4
+          type: integer
+        duration:
+          example: 10
+          type: integer
+        user_id:
+          example: 11023803215
+          type: integer
+      required:
+      - aid_name
+      - aid_per_day
+      - duration
+      - user_id
+    ScheduleResponse:
+      example:
+        id: 1
+      properties:
+        id:
+          example: 1
+          type: integer
