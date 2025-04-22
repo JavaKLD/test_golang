@@ -4,6 +4,7 @@ import (
 	"dolittle2/internal/controllers"
 	"dolittle2/internal/database"
 	"dolittle2/internal/repos"
+	"dolittle2/internal/routers"
 	"dolittle2/internal/services"
 	"dolittle2/migrations"
 	"errors"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	slog.Info("Сервер запущен")
 	db, err := database.InitDB()
 	if err != nil {
 		log.Fatalf("Database connection failed %v", err)
@@ -29,16 +31,16 @@ func main() {
 	service := services.NewService(repo)
 	controller := controllers.NewScheduleController(service)
 
-	e := echo.New()
+	go func() {
+		e := echo.New()
+		routers.InitRoutes(e, controller)
 
-	e.POST("/schedule", controller.CreateSchedule)
-	e.GET("/schedules", controller.GetUserSchedule)
-	e.GET("/schedule", controller.GetSchedule)
-	e.GET("/next_takings", controller.GetNextTakings)
+		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("failed to start echo server", "error", err)
+		}
+	}()
 
-	err = e.Start(":8080")
+	go controllers.StartGRPCServer(service)
 
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed to start server", "error", err)
-	}
+	select {}
 }
