@@ -54,7 +54,7 @@ func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неверный формат user_id"})
 	}
 
-	scheduleID, err := c.Service.FindByUserID(uint(userID))
+	scheduleID, err := c.Service.FindByUserID(userID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "не удалось получить данные"})
 	}
@@ -87,7 +87,7 @@ func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат schedule_id"})
 	}
 
-	scheduleTimes, err := c.Service.GetDailySchedule(uint(userID), uint(scheduleID))
+	scheduleTimes, err := c.Service.GetDailySchedule(userID, scheduleID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка вывода графика приема лекарств"})
 	}
@@ -113,7 +113,7 @@ func (c *ScheduleController) GetNextTakings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат user_id"})
 	}
 
-	nextTakings, err := c.Service.GetNextTakings(uint(userID))
+	nextTakings, err := c.Service.GetNextTakings(userID)
 	if err != nil {
 		if err.Error() == "Нет ближайших приемов" {
 			return ctx.JSON(http.StatusOK, map[string]string{"message": "Нет ближайших приемов"})

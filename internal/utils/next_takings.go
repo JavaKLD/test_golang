@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func GenerateScheduleTimes(day time.Time, timesPerDay int) ([]time.Time, error) {
+func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, error) {
 	if timesPerDay <= 0 || timesPerDay > 24 {
 		return nil, errors.New("Неверное количество приемов в день")
 	}
@@ -32,7 +32,7 @@ func GenerateScheduleTimes(day time.Time, timesPerDay int) ([]time.Time, error) 
 
 		interval := (endTime.Sub(startTime)) / time.Duration(timesPerDay)
 
-		for i := 0; i < timesPerDay; i++ {
+		for i := 0; uint64(i) < timesPerDay; i++ {
 			appointmentTime := startTime.Add(time.Duration(i) * interval)
 			scheduleTimes = append(scheduleTimes, appointmentTime)
 		}

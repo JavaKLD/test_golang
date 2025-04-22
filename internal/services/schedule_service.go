@@ -19,7 +19,7 @@ func NewService(repo *repos.ScheduleRepo) *ScheduleService {
 	return &ScheduleService{Repo: repo}
 }
 
-func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint, error) {
+func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint64, error) {
 	exists, err := s.Repo.AidNameExists(schedule.Aid_name, schedule.UserID)
 	if err != nil {
 		return 0, err
@@ -43,11 +43,11 @@ func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint, error
 	return id, nil
 }
 
-func (s *ScheduleService) FindByUserID(userID uint) ([]uint, error) {
+func (s *ScheduleService) FindByUserID(userID uint64) ([]uint64, error) {
 	return s.Repo.FindByUserID(userID)
 }
 
-func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint) ([]time.Time, error) {
+func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint64) ([]time.Time, error) {
 	schedule, err := s.Repo.FindSchedule(userID, scheduleID)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint) ([]time.Time
 	return utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
 }
 
-func (s *ScheduleService) GetNextTakings(userID uint) (map[string][]string, error) {
+func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, error) {
 	now := time.Now()
 	end := now.Add(config.LoadConfig())
 
