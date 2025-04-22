@@ -1,0 +1,70 @@
+ 2. create table developers (
+ id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+ name TEXT NOT NULL,
+ department TEXT,
+ geolocation POINT,
+ last_known_ip INET,
+ is_available BOOLEAN
+ );
+
+
+3. 
+id,"name","department","geolocation","last_known_ip","is_available"
+2418ff33-780e-4b28-b392-8d76603f2e99,"Mary Jones","android","(-89.58324307903992,-179.16648615807983)","1.1.1.1",NULL
+16c7fdcf-e779-461a-b181-dab2ae025103,"James Williams","backend","(-87.84975921252011,-175.69951842504022)","3.3.3.3",NULL
+bb881886-b4b4-448c-a85f-6c774b46ddab,"Patricia Jones","backend","(-80.80200210235938,-161.60400420471876)","13.13.13.13",NULL
+ccb05132-94f5-4b9d-8050-58b178b6bf95,"James Williams","ios","(-80.57169543959242,-161.14339087918484)","13.13.13.13",NULL
+bd4dd7bd-1e8f-4b2a-be8d-657c15f51479,"James Brown","backend","(-80.03461573192466,-160.06923146384932)","14.14.14.14",NULL
+edf3eedf-e1a5-4562-89bc-342688db9451,"James Smith","frontend","(-79.83673426012503,-159.67346852025005)","14.14.14.14",NULL
+342ddf26-03b0-4075-9d98-21c3cb516cd6,"Mary Williams","android","(-75.25324390658096,-150.50648781316193)","21.21.21.21",NULL
+62d612d3-af6b-4d4a-b880-7747cd55a0ad,"John Brown","ios","(-73.59030666345555,-147.1806133269111)","23.23.23.23",NULL
+89a30575-8048-423e-8811-fb684599b7ec,"James Jones","frontend","(-72.14320918202691,-144.28641836405382)","25.25.25.25",NULL
+8f6b1222-dd6b-44a9-a157-e502f74a3da0,"Mary Johnson","frontend","(-67.61882962874836,-135.23765925749672)","32.32.32.32",NULL
+0b2e6675-53d0-442b-803a-45f26388c42d,"Robert Brown","backend","(-64.47532847702891,-128.95065695405782)","36.36.36.36",NULL
+5f07249e-7658-4ee8-b311-cbe849dbedda,"Mary Smith","frontend","(-61.29044722285791,-122.58089444571581)","41.41.41.41",NULL
+502e5e1f-fb21-4287-b782-80ef2d9c1ba3,"Robert Smith","android","(-60.88730287064197,-121.77460574128393)","41.41.41.41",NULL
+9589836b-3089-46b5-9430-f00409556a30,"John Smith","backend","(-56.6454858775543,-113.2909717551086)","47.47.47.47",NULL
+609704dc-361d-4450-b7c5-7de53fac2190,"Patricia Johnson","ios","(-54.744371880780974,-109.48874376156195)","50.50.50.50",NULL
+f5b5bfb7-3ce0-4f3b-ba00-c7d9bbf573ea,"James Smith","backend","(-50.213492128203725,-100.42698425640745)","56.56.56.56",NULL
+68717f9d-74d5-49cb-969d-ce193f85dd84,"John Johnson","ios","(-48.254885108109264,-96.50977021621853)","59.59.59.59",NULL
+9b218325-f5f1-43c1-bdac-fd242aba1a69,"John Jones","frontend","(-45.78184425399879,-91.56368850799758)","63.63.63.63",NULL
+57eb0324-2c53-4bab-a1e6-0461f2d8a6b1,"John Smith","frontend","(-44.602427254926866,-89.20485450985373)","64.64.64.64",NULL
+7e37f4f9-75aa-4a41-b966-0a93b74d272f,"Patricia Jones","android","(-43.027836359259275,-86.05567271851855)","67.67.67.67",NULL
+
+4.
+EXPLAIN ANALYZE SELECT * FROM developers WHERE name LIKE 'James%';
+
+QUERY PLAN	Seq Scan on developers (cost=0.00..1.25 rows=5 width=59) (actual time=0.013..0.015 rows=6 loops=1)
+QUERY PLAN	Filter: (name ~~ 'James%'::text)
+QUERY PLAN	Rows Removed by Filter: 14
+QUERY PLAN	Planning Time: 1.241 ms
+QUERY PLAN	Execution Time: 0.043 ms
+
+EXPLAIN ANALYZE SELECT * FROM developers WHERE department = 'backend';
+
+QUERY PLAN	Seq Scan on developers (cost=0.00..1.25 rows=6 width=59) (actual time=0.011..0.013 rows=6 loops=1)
+QUERY PLAN	Filter: (department = 'backend'::text)
+QUERY PLAN	Rows Removed by Filter: 14
+QUERY PLAN	Planning Time: 0.082 ms
+QUERY PLAN	Execution Time: 0.022 ms
+
+EXPLAIN ANALYZE SELECT * FROM developers WHERE last_known_ip = '192.168.1.10'::inet;
+
+QUERY PLAN	Seq Scan on developers (cost=0.00..1.25 rows=1 width=59) (actual time=0.022..0.022 rows=0 loops=1)
+QUERY PLAN	Filter: (last_known_ip = '192.168.1.10'::inet)
+QUERY PLAN	Rows Removed by Filter: 20
+QUERY PLAN	Planning Time: 68.672 ms
+QUERY PLAN	Execution Time: 0.041 ms
+
+EXPLAIN ANALYZE SELECT * FROM developers WHERE is_available = TRUE;
+
+QUERY PLAN	Seq Scan on developers (cost=0.00..1.20 rows=1 width=59) (actual time=0.011..0.011 rows=0 loops=1)
+QUERY PLAN	Filter: is_available
+QUERY PLAN	Rows Removed by Filter: 20
+QUERY PLAN	Planning Time: 0.056 ms
+QUERY PLAN	Execution Time: 0.020 ms
+
+5. в папке sql/public.sql
+
+6. С индексом при количестве записей примерно 1000 скорость выполнения запроса 
+в 2 - 2.5 раза быстрее Execution Time: 0.113 ms <- с индексом|| без ->Execution Time: 0.256 ms
