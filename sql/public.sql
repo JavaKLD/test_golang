@@ -21,6 +21,10 @@ LIMIT 20;
 
 SELECT * FROM developers;
 
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'developers';
+
 EXPLAIN ANALYZE SELECT * FROM developers WHERE name LIKE 'James%';
 
 EXPLAIN ANALYZE SELECT * FROM developers WHERE department = 'backend';
@@ -39,3 +43,24 @@ CREATE INDEX idx_developers_geolocation ON developers (
 
 CREATE INDEX idx_developers_ip ON developers (last_known_ip);
 DROP INDEX IF EXISTS idx_developers_department;
+
+
+INSERT INTO developers (name, department, geolocation, last_known_ip)
+SELECT 
+    (ARRAY['James', 'Mary', 'John', 'Patricia', 'Robert'])[floor(random()*5 + 1)::int] || ' ' ||
+    (ARRAY['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'])[floor(random()*5 + 1)::int] AS name,
+
+    (ARRAY['backend', 'frontend', 'ios', 'android'])[floor(random()*5 + 1)::int] AS department,
+
+    POINT( 
+        (random()*180 - 90)::numeric(8,5), 
+        (random()*360 - 180)::numeric(8,5)
+    ) AS geolocation,
+
+    ( (floor(random()*256)::int)::text || '.' ||
+      (floor(random()*256)::int)::text || '.' ||
+      (floor(random()*256)::int)::text || '.' ||
+      (floor(random()*256)::int)::text
+    )::inet AS last_known_ip
+
+FROM generate_series(1,5000);
