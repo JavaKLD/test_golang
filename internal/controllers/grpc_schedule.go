@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"dolittle2/internal/middleware"
 	"dolittle2/internal/models"
 	"dolittle2/internal/services"
 	"dolittle2/internal/utils"
@@ -34,9 +35,15 @@ func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateSched
 	id, err := s.Service.CreateSchedule(schedule)
 	if err != nil {
 		if err.Error() == "Запись с таким именем для пользователя уже существует" {
-			return nil, status.Errorf(codes.AlreadyExists, "Запись с таким aid_name для данного пользователя уже существует")
+			return nil, status.Errorf(
+				codes.AlreadyExists,
+				"Запись с таким aid_name для данного пользователя уже существует",
+			)
 		} else {
-			return nil, status.Errorf(codes.InvalidArgument, "Лекарства принимаются с 8 до 22")
+			return nil, status.Errorf(
+				codes.InvalidArgument,
+				"Лекарства принимаются с 8 до 22",
+			)
 		}
 	}
 
@@ -49,12 +56,26 @@ func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateSched
 func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserScheduleRequest) (*pb.GetUserScheduleResponse, error) {
 	userID := req.GetId()
 	if userID == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "Не может быть равным 0")
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"Не может быть равным 0",
+		)
+	}
+	exists, _ := s.Service.CheckUserExists(userID)
+	if !exists {
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Такого пользователя нет ",
+		)
 	}
 
 	scheduleID, err := s.Service.FindByUserID(userID)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Не удалось получить данные %v:", err)
+		return nil, status.Errorf(
+			codes.Internal,
+			"Не удалось получить данные %v:",
+			err,
+		)
 	}
 
 	return &pb.GetUserScheduleResponse{
@@ -67,12 +88,18 @@ func (s *ScheduleServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReq
 	userID := req.GetUserId()
 	scheduleID := req.GetScheduleId()
 	if userID == 0 || scheduleID == 0 {
-		return nil, status.Errorf(codes.Internal, "Не указан user_id или schedule_id")
+		return nil, status.Errorf(
+			codes.Internal,
+			"Не указан user_id или schedule_id",
+		)
 	}
 
 	scheduleTimes, err := s.Service.GetDailySchedule(userID, scheduleID)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "Ошибка вывода графика приема лекарств")
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"Ошибка вывода графика приема лекарств",
+		)
 	}
 
 	var formattedTimes []string
@@ -89,7 +116,18 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 	userID := req.GetUserId()
 
 	if userID == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "Отсутствует user_id")
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"Отсутствует user_id",
+		)
+	}
+
+	exists, _ := s.Service.CheckUserExists(userID)
+	if !exists {
+		return nil, status.Error(
+			codes.InvalidArgument,
+			"Такого пользователя нет ",
+		)
 	}
 
 	nextTakings, err := s.Service.GetNextTakings(userID)
@@ -99,6 +137,11 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 				Message: "Нет ближайших приемов",
 			}, nil
 		}
+		return nil, status.Errorf(
+			codes.Internal,
+			"Ошибка получения ближайших приемов: %v",
+			err,
+		)
 	}
 
 	var schedule []*pb.KeyValuePair
@@ -116,16 +159,25 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 }
 
 func StartGRPCServer(service *services.ScheduleService) {
+	logger := slog.Default()
+
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		slog.Error("Ошибка подключения gRPC сервера")
+		logger.Error("Ошибка подключения gRPC сервера")
 	}
 
-	grpcServer := grpc.NewServer()
-	pb.RegisterScheduleServiceServer(grpcServer, &ScheduleServer{Service: service})
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.LoggingInterceptor(logger)),
+	)
 
+	pb.RegisterScheduleServiceServer(
+		grpcServer,
+		&ScheduleServer{Service: service},
+	)
+
+	logger.Info("gRPC сервер на порте 50051")
 	err = grpcServer.Serve(lis)
 	if err != nil {
-		slog.Error("Ошибка ")
+		logger.Error("Ошибка запуска gRPC сервера", "error", err)
 	}
 }
