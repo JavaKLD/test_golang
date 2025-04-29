@@ -34,6 +34,16 @@ func (r *ScheduleRepo) AidNameExists(aidName string, userID uint64) (bool, error
 	return count > 0, nil
 }
 
+func (r *ScheduleRepo) UserIdExists(userID uint64) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.Schedule{}).
+		Where("user_id = ?", userID).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
 func (r *ScheduleRepo) FindByUserID(userID uint64) ([]uint64, error) {
 	var scheduleID []uint64
 	err := r.db.Model(&models.Schedule{}).Where("user_id = ?", userID).Pluck("id", &scheduleID).Error
