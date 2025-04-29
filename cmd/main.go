@@ -3,12 +3,12 @@ package main
 import (
 	"dolittle2/internal/controllers"
 	"dolittle2/internal/database"
+	"dolittle2/internal/logger"
 	"dolittle2/internal/repos"
 	"dolittle2/internal/routers"
 	"dolittle2/internal/services"
 	"dolittle2/migrations"
 	"errors"
-	"log"
 	"log/slog"
 	"net/http"
 
@@ -16,15 +16,18 @@ import (
 )
 
 func main() {
+	logger.InitLogger()
+
 	slog.Info("Сервер запущен")
+
 	db, err := database.InitDB()
 	if err != nil {
-		log.Fatalf("Database connection failed %v", err)
+		slog.Error("Ошибка подключения к бд", "error: ", err)
 	}
 
 	err = migrations.Migration(db)
 	if err != nil {
-		log.Fatal("Ошибка миграции", err)
+		slog.Error("Ошибка миграции", "error:", err)
 	}
 
 	repo := repos.NewScheduleRepo(db)
