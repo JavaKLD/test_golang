@@ -3,7 +3,7 @@
 /*
  * Medical schedule API
  *
- * API для работы с расписанием приемов лекарств
+ * Api Для работы с расписанием приемов лекарств
  *
  * API version: 1.0
  */
@@ -14,8 +14,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"errors"
-	"io"
 )
 
 // DefaultAPIController binds http requests to an api service and writes the service results to the http response
@@ -63,7 +61,7 @@ func (c *DefaultAPIController) Routes() Routes {
 		},
 		"GetUserSchedule": Route{
 			strings.ToUpper("Get"),
-			"/schedules",
+			"/schudules",
 			c.GetUserSchedule,
 		},
 		"GetNextTakings": Route{
@@ -150,7 +148,7 @@ func (c *DefaultAPIController) CreateSchedule(w http.ResponseWriter, r *http.Req
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetUserSchedule - Получить расписание пользователя
+// GetUserSchedule - Получить расписание пользоваетеля
 func (c *DefaultAPIController) GetUserSchedule(w http.ResponseWriter, r *http.Request) {
 	query, err := parseQuery(r.URL.RawQuery)
 	if err != nil {

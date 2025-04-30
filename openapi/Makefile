@@ -1,8 +1,8 @@
 GENERATOR=openapitools/openapi-generator-cli
 GEN_LANG=go-server
 GEN_OUTPUT=gen
-OPENAPI_FILE=openapi/openapi.yml
-PROJECT_DIR := $(shell cd $(shell pwd) && pwd)
+OPENAPI_FILE=openapi.yml
+PROJECT_DIR := $(shell pwd)
 
 generate:
 	docker run --rm -v $(PROJECT_DIR):/local $(GENERATOR) generate \
@@ -11,4 +11,4 @@ generate:
 	  -o /local/$(GEN_OUTPUT)
 
 clean:
-	rmdir /s /q $(GEN_OUTPUT)
+	rm -rf $(GEN_OUTPUT)

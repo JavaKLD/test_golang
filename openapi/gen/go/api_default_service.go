@@ -3,7 +3,7 @@
 /*
  * Medical schedule API
  *
- * API для работы с расписанием приемов лекарств
+ * Api Для работы с расписанием приемов лекарств
  *
  * API version: 1.0
  */
@@ -64,7 +64,7 @@ func (s *DefaultAPIService) CreateSchedule(ctx context.Context, scheduleRequest 
 	return Response(http.StatusNotImplemented, nil), errors.New("CreateSchedule method not implemented")
 }
 
-// GetUserSchedule - Получить расписание пользователя
+// GetUserSchedule - Получить расписание пользоваетеля
 func (s *DefaultAPIService) GetUserSchedule(ctx context.Context, userId int32) (ImplResponse, error) {
 	// TODO - update GetUserSchedule with the required logic for this service method.
 	// Add api_default_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.

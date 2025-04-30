@@ -1,6 +1,6 @@
-openapi: 3.1.1
+openapi: 3.0.0
 info:
-  description: API для работы с расписанием приемов лекарств
+  description: Api Для работы с расписанием приемов лекарств
   title: Medical schedule API
   version: "1.0"
 servers:
@@ -53,7 +53,7 @@ paths:
         "422":
           description: Лекарства принимаются с 8 до 22
       summary: Создать расписание приемов лекарства
-  /schedules:
+  /schudules:
     get:
       operationId: getUserSchedule
       parameters:
@@ -71,7 +71,7 @@ paths:
           description: Неверный формат запроса
         "500":
           description: Ошибка сервера
-      summary: Получить расписание пользователя
+      summary: Получить расписание пользоваетеля
   /next_takings:
     get:
       operationId: getNextTakings
@@ -87,7 +87,7 @@ paths:
         "200":
           description: Список следующих приемов
         "400":
-          description: Неверный формат запроса
+          description: Невверный формат запроса
         "500":
           description: Ошибка сервера
       summary: Получить график на следующие приемы лекарств
@@ -95,10 +95,10 @@ components:
   schemas:
     ScheduleRequest:
       example:
-        aid_name: Парацетамол
-        aid_per_day: 4
         duration: 10
         user_id: 11023803215
+        aid_name: Парацетамол
+        aid_per_day: 4
       properties:
         aid_name:
           example: Парацетамол
@@ -117,6 +117,7 @@ components:
       - aid_per_day
       - duration
       - user_id
+      type: object
     ScheduleResponse:
       example:
         id: 1
@@ -124,3 +125,4 @@ components:
         id:
           example: 1
           type: integer
+      type: object
