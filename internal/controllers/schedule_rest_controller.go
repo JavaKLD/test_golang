@@ -46,7 +46,7 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusCreated, map[string]interface{}{
 		"id":      id,
-		"message": "Запись создана",
+		"message": "Запись создана!",
 	})
 }
 
