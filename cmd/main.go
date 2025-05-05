@@ -3,16 +3,16 @@ package main
 import (
 	"dolittle2/internal/controllers"
 	"dolittle2/internal/database"
+	"github.com/labstack/echo/v4"
+
+	"dolittle2/internal/database/migrations"
 	"dolittle2/internal/logger"
 	"dolittle2/internal/repos"
 	"dolittle2/internal/routers"
 	"dolittle2/internal/services"
-	"dolittle2/migrations"
 	"errors"
 	"log/slog"
 	"net/http"
-
-	"github.com/labstack/echo/v4"
 )
 
 func main() {
