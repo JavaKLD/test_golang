@@ -12,13 +12,15 @@ package openapi
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"strings"
 )
 
 // DefaultAPIController binds http requests to an api service and writes the service results to the http response
 type DefaultAPIController struct {
-	service DefaultAPIServicer
+	service      DefaultAPIServicer
 	errorHandler ErrorHandler
 }
 
