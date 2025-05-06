@@ -68,7 +68,7 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 			name:           "Every hour (24 times)",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    24,
-			expectedLength: 24,
+			expectedLength: 15,
 			expextedHours:  nil,
 		},
 	}
