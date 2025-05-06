@@ -1,8 +1,7 @@
 package migrations
 
 import (
-	"dolittle2/internal/models"
-
+	"dolittle2/internal/domain/models"
 	"gorm.io/gorm"
 )
 

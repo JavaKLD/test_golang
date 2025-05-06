@@ -3,8 +3,8 @@ package services
 import (
 	//"dolittle2/internal/config"
 	"dolittle2/internal/config"
-	"dolittle2/internal/models"
-	"dolittle2/internal/repos"
+	"dolittle2/internal/domain/models"
+	"dolittle2/internal/domain/repos"
 	"dolittle2/internal/utils"
 	"errors"
 	"log/slog"

@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"context"
+	"dolittle2/internal/domain/models"
+	"dolittle2/internal/domain/services"
 	"dolittle2/internal/middleware"
-	"dolittle2/internal/models"
-	"dolittle2/internal/services"
 	"dolittle2/internal/utils"
 	pb "dolittle2/proto"
 	"log/slog"

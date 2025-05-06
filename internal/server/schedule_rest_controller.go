@@ -1,27 +1,27 @@
-package controllers
+package server
 
 import (
-	"dolittle2/internal/models"
+	"dolittle2/internal/domain/models"
+	"dolittle2/internal/domain/services"
 	"dolittle2/internal/utils"
 	openapi "dolittle2/openapi/gen/go"
 	"time"
 
-	"dolittle2/internal/services"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-type ScheduleController struct {
+type ScheduleServer struct {
 	Service *services.ScheduleService
 }
 
-func NewScheduleController(service *services.ScheduleService) *ScheduleController {
-	return &ScheduleController{Service: service}
+func NewScheduleController(service *services.ScheduleService) *ScheduleServer {
+	return &ScheduleServer{Service: service}
 }
 
-func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
+func (c *ScheduleServer) CreateSchedule(ctx echo.Context) error {
 	var req openapi.ScheduleRequest
 	err := ctx.Bind(&req)
 	if err != nil {
@@ -49,7 +49,7 @@ func (c *ScheduleController) CreateSchedule(ctx echo.Context) error {
 	})
 }
 
-func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
+func (c *ScheduleServer) GetUserSchedule(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
@@ -75,7 +75,7 @@ func (c *ScheduleController) GetUserSchedule(ctx echo.Context) error {
 	})
 }
 
-func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
+func (c *ScheduleServer) GetSchedule(ctx echo.Context) error {
 	queryParamID := strings.TrimSpace(ctx.QueryParam("user_id"))
 	queryParamSchedule := strings.TrimSpace(ctx.QueryParam("schedule_id"))
 
@@ -107,7 +107,7 @@ func (c *ScheduleController) GetSchedule(ctx echo.Context) error {
 
 }
 
-func (c *ScheduleController) GetNextTakings(ctx echo.Context) error {
+func (c *ScheduleServer) GetNextTakings(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 
 	if queryParam == "" {

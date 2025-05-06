@@ -1,15 +1,15 @@
 package main
 
 import (
+	"dolittle2/database"
+	"dolittle2/database/migrations"
 	"dolittle2/internal/controllers"
-	"dolittle2/internal/database"
+	"dolittle2/internal/domain/repos"
+	"dolittle2/internal/domain/services"
+	"dolittle2/internal/server"
 	"github.com/labstack/echo/v4"
 
-	"dolittle2/internal/database/migrations"
 	"dolittle2/internal/logger"
-	"dolittle2/internal/repos"
-	"dolittle2/internal/routers"
-	"dolittle2/internal/services"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -32,11 +32,11 @@ func main() {
 
 	repo := repos.NewScheduleRepo(db)
 	service := services.NewService(repo)
-	controller := controllers.NewScheduleController(service)
+	controller := server.NewScheduleController(service)
 
 	go func() {
 		e := echo.New()
-		routers.InitRoutes(e, controller)
+		server.InitRoutes(e, controller)
 
 		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start echo server", "error", err)
