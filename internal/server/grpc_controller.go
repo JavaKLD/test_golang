@@ -1,11 +1,11 @@
-package controllers
+package server
 
 import (
 	"context"
 	"dolittle2/internal/domain/models"
 	"dolittle2/internal/domain/services"
-	"dolittle2/internal/middleware"
 	"dolittle2/internal/utils"
+	"dolittle2/pkg/middleware"
 	pb "dolittle2/proto"
 	"log/slog"
 	"net"

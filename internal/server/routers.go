@@ -1,16 +1,16 @@
 package server
 
 import (
-	"dolittle2/internal/middleware"
+	"dolittle2/pkg/middleware"
 
 	"github.com/labstack/echo/v4"
 )
 
-func InitRoutes(e *echo.Echo, controller *ScheduleServer) {
+func InitRoutes(e *echo.Echo, s *ScheduleRestServer) {
 	e.Use(middleware.ReqLogger)
 
-	e.POST("/schedule", controller.CreateSchedule)
-	e.GET("/schedules", controller.GetUserSchedule)
-	e.GET("/schedule", controller.GetSchedule)
-	e.GET("/next_takings", controller.GetNextTakings)
+	e.POST("/schedule", s.postSchedule)
+	e.GET("/schedules", s.getUserSchedule)
+	e.GET("/schedule", s.getSchedule)
+	e.GET("/next_takings", s.getNextTakings)
 }
