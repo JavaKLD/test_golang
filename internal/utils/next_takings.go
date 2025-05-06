@@ -24,17 +24,22 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 	if timesPerDay == 24 { // каждый час
 		for i := 0; i < 24; i++ {
 			appointmentTime := time.Date(day.Year(), day.Month(), day.Day(), i, 0, 0, 0, day.Location())
-			scheduleTimes = append(scheduleTimes, appointmentTime)
+			scheduleTimes = append(scheduleTimes, RoundTime(appointmentTime))
 		}
 	} else {
 		startTime = time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
 		endTime = time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
 
-		interval := (endTime.Sub(startTime)) / time.Duration(timesPerDay)
+		var interval time.Duration
+		if timesPerDay == 1 {
+			interval = 0
+		} else {
+			interval = (endTime.Sub(startTime)) / time.Duration(timesPerDay-1)
+		}
 
 		for i := 0; uint64(i) < timesPerDay; i++ {
 			appointmentTime := startTime.Add(time.Duration(i) * interval)
-			scheduleTimes = append(scheduleTimes, appointmentTime)
+			scheduleTimes = append(scheduleTimes, RoundTime(appointmentTime))
 		}
 	}
 

@@ -1,26 +1,24 @@
 package main
 
 import (
-	"dolittle2/database"
 	"dolittle2/database/migrations"
-	"dolittle2/internal/controllers"
 	"dolittle2/internal/domain/repos"
 	"dolittle2/internal/domain/services"
 	"dolittle2/internal/server"
+	"dolittle2/pkg/connectors"
 	"github.com/labstack/echo/v4"
 
-	"dolittle2/internal/logger"
 	"errors"
 	"log/slog"
 	"net/http"
 )
 
 func main() {
-	logger.InitLogger()
+	connectors.InitLogger()
 
 	slog.Info("Сервер запущен")
 
-	db, err := database.InitDB()
+	db, err := connectors.InitDB()
 	if err != nil {
 		slog.Error("Ошибка подключения к бд", "error: ", err)
 	}
@@ -43,7 +41,7 @@ func main() {
 		}
 	}()
 
-	go controllers.StartGRPCServer(service)
+	go server.StartGRPCServer(service)
 
 	select {}
 }

@@ -2,7 +2,6 @@ package server
 
 import (
 	"dolittle2/internal/domain/models"
-	"dolittle2/internal/domain/services"
 	"dolittle2/internal/utils"
 	openapi "dolittle2/openapi/gen/go"
 	"time"
@@ -13,16 +12,25 @@ import (
 	"strings"
 )
 
-type ScheduleServer struct {
-	Service *services.ScheduleService
+type scheduleService interface {
+	CreateSchedule(schedule *models.Schedule) (uint64, error)
+	FindByUserID(userId uint64) ([]uint64, error)
+	CheckUserExists(userId uint64) (bool, error)
+	GetDailySchedule(userId, scheduleID uint64) ([]time.Time, error)
+	GetNextTakings(userID uint64) (map[string][]string, error)
 }
 
-func NewScheduleController(service *services.ScheduleService) *ScheduleServer {
-	return &ScheduleServer{Service: service}
+type ScheduleRestServer struct {
+	scheduleService scheduleService
 }
 
-func (c *ScheduleServer) CreateSchedule(ctx echo.Context) error {
+func NewScheduleController(scheduleService scheduleService) *ScheduleRestServer {
+	return &ScheduleRestServer{scheduleService: scheduleService}
+}
+
+func (s *ScheduleRestServer) postSchedule(ctx echo.Context) error {
 	var req openapi.ScheduleRequest
+
 	err := ctx.Bind(&req)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неправильный формат запроса"})
@@ -35,7 +43,7 @@ func (c *ScheduleServer) CreateSchedule(ctx echo.Context) error {
 		Create_at:   utils.RoundTime(time.Now()),
 	}
 
-	id, err := c.Service.CreateSchedule(schedule)
+	id, err := s.scheduleService.CreateSchedule(schedule)
 	if err != nil {
 		if err.Error() == "Запись с таким именем для пользователя уже существует" {
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Запись с таким aid_name для данного пользователя уже существует"})
@@ -49,7 +57,7 @@ func (c *ScheduleServer) CreateSchedule(ctx echo.Context) error {
 	})
 }
 
-func (c *ScheduleServer) GetUserSchedule(ctx echo.Context) error {
+func (s *ScheduleRestServer) getUserSchedule(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
@@ -60,7 +68,7 @@ func (c *ScheduleServer) GetUserSchedule(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неверный формат user_id"})
 	}
 
-	scheduleID, err := c.Service.FindByUserID(userID)
+	scheduleID, err := s.scheduleService.FindByUserID(userID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "не удалось получить данные"})
 	}
@@ -75,7 +83,7 @@ func (c *ScheduleServer) GetUserSchedule(ctx echo.Context) error {
 	})
 }
 
-func (c *ScheduleServer) GetSchedule(ctx echo.Context) error {
+func (s *ScheduleRestServer) getSchedule(ctx echo.Context) error {
 	queryParamID := strings.TrimSpace(ctx.QueryParam("user_id"))
 	queryParamSchedule := strings.TrimSpace(ctx.QueryParam("schedule_id"))
 
@@ -93,7 +101,7 @@ func (c *ScheduleServer) GetSchedule(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат schedule_id"})
 	}
 
-	scheduleTimes, err := c.Service.GetDailySchedule(userID, scheduleID)
+	scheduleTimes, err := s.scheduleService.GetDailySchedule(userID, scheduleID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Ошибка вывода графика приема лекарств"})
 	}
@@ -107,7 +115,7 @@ func (c *ScheduleServer) GetSchedule(ctx echo.Context) error {
 
 }
 
-func (c *ScheduleServer) GetNextTakings(ctx echo.Context) error {
+func (s *ScheduleRestServer) getNextTakings(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 
 	if queryParam == "" {
@@ -119,7 +127,7 @@ func (c *ScheduleServer) GetNextTakings(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Неверный формат user_id"})
 	}
 
-	nextTakings, err := c.Service.GetNextTakings(userID)
+	nextTakings, err := s.scheduleService.GetNextTakings(userID)
 	if err != nil {
 		if err.Error() == "Нет ближайших приемов" {
 			return ctx.JSON(http.StatusOK, map[string]string{"message": "Нет ближайших приемов"})

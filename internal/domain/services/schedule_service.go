@@ -1,23 +1,30 @@
 package services
 
 import (
-	//"dolittle2/internal/config"
 	"dolittle2/internal/config"
 	"dolittle2/internal/domain/models"
-	"dolittle2/internal/domain/repos"
 	"dolittle2/internal/utils"
 	"errors"
 	"log/slog"
 	"time"
 )
 
-type ScheduleService struct {
-	Repo *repos.ScheduleRepo
+type scheduleRepo interface {
+	CreateSchedule(schedule *models.Schedule) (uint64, error)
+	AidNameExists(aidName string, userID uint64) (bool, error)
+	UserIdExists(userID uint64) (bool, error)
+	FindByUserID(userID uint64) ([]uint64, error)
+	FindSchedule(userID, scheduleID uint64) (*models.Schedule, error)
+	NextTakings(userID uint64) ([]models.Schedule, error)
 }
 
-func NewService(repo *repos.ScheduleRepo) *ScheduleService {
+type ScheduleService struct {
+	scheduleRepo scheduleRepo
+}
+
+func NewService(scheduleRepo scheduleRepo) *ScheduleService {
 	return &ScheduleService{
-		Repo: repo,
+		scheduleRepo: scheduleRepo,
 	}
 }
 
@@ -28,7 +35,7 @@ func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint64, err
 		slog.Uint64("user_id", schedule.UserID),
 	)
 
-	exists, err := s.Repo.AidNameExists(schedule.Aid_name, schedule.UserID)
+	exists, err := s.scheduleRepo.AidNameExists(schedule.Aid_name, schedule.UserID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при проверке существования имени лекарства",
@@ -55,7 +62,7 @@ func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint64, err
 		return 0, errors.New("Лекарства можно принимать только с 8:00 до 22:00")
 	}
 
-	id, err := s.Repo.CreateSchedule(schedule)
+	id, err := s.scheduleRepo.CreateSchedule(schedule)
 	if err != nil {
 		slog.Error(
 			"Ошибка при создании расписания",
@@ -77,7 +84,7 @@ func (s *ScheduleService) FindByUserID(userID uint64) ([]uint64, error) {
 		slog.Uint64("user_id", userID),
 	)
 
-	schedules, err := s.Repo.FindByUserID(userID)
+	schedules, err := s.scheduleRepo.FindByUserID(userID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при поиске расписаний для пользователя",
@@ -102,7 +109,7 @@ func (s *ScheduleService) CheckUserExists(userID uint64) (bool, error) {
 		slog.Uint64("user_id", userID),
 	)
 
-	exists, err := s.Repo.UserIdExists(userID)
+	exists, err := s.scheduleRepo.UserIdExists(userID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при проверке существования пользователя",
@@ -134,7 +141,7 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint64) ([]time.Ti
 		slog.Uint64("schedule_id", scheduleID),
 	)
 
-	schedule, err := s.Repo.FindSchedule(userID, scheduleID)
+	schedule, err := s.scheduleRepo.FindSchedule(userID, scheduleID)
 	if err != nil {
 		slog.Error("Ошибка нахождения расписания",
 			slog.Uint64("user_id", userID),
@@ -154,7 +161,7 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 	now := time.Now()
 	end := now.Add(config.LoadConfig())
 
-	schedules, err := s.Repo.NextTakings(userID)
+	schedules, err := s.scheduleRepo.NextTakings(userID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при получении расписания для след приемов",
