@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"log/slog"
 	"time"
 )
 
@@ -13,6 +14,7 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 	var scheduleTimes []time.Time
 	startTime := time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
 	endTime := time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
+	duration := endTime.Sub(startTime)
 	now := time.Now()
 
 	if now.After(endTime) {
@@ -26,16 +28,11 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 
 	var interval time.Duration
 	if timesPerDay == 1 {
-		interval = 0
-	}
-	if timesPerDay%2 == 0 {
-		interval = (endTime.Sub(startTime)) / time.Duration(timesPerDay)
-	}
-	if timesPerDay%2 != 0 && timesPerDay != 1 {
-		interval = (endTime.Sub(startTime)) / time.Duration(timesPerDay-1)
+		slog.Info("das", startTime.Add(duration/2))
+		scheduleTimes = append(scheduleTimes, startTime.Add(duration/2))
+		return scheduleTimes, nil
 	}
 	if timesPerDay == 24 {
-		interval = endTime.Sub(startTime)
 		for i := 0; uint64(i) <= 14; i++ {
 			scheduleTimes = append(scheduleTimes, startTime.Add(time.Duration(i)*time.Hour))
 		}
