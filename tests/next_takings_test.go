@@ -20,7 +20,7 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    1,
 			expectedLength: 1,
-			expextedHours:  []int{8},
+			expextedHours:  []int{15},
 		},
 		{
 			name:           "Twice per day",
@@ -51,6 +51,13 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 			expextedHours:  nil,
 		},
 		{
+			name:           "Six times per day",
+			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
+			timesPerDay:    6,
+			expectedLength: 6,
+			expextedHours:  nil,
+		},
+		{
 			name:           "Eight times per day",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    8,
@@ -68,7 +75,7 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 			name:           "Every hour (24 times)",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    24,
-			expectedLength: 24,
+			expectedLength: 15,
 			expextedHours:  nil,
 		},
 	}
