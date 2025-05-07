@@ -2,9 +2,10 @@ package utils
 
 import (
 	"errors"
-	"log/slog"
 	"time"
 )
+
+var NowFunc = time.Now
 
 func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, error) {
 	if timesPerDay <= 0 || timesPerDay > 24 {
@@ -12,10 +13,19 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 	}
 
 	var scheduleTimes []time.Time
+	createdService := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	startTime := time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
 	endTime := time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
 	duration := endTime.Sub(startTime)
-	now := time.Now()
+	now := NowFunc()
+
+	if day.Year() < createdService.Year() || day.Year() > now.Year() {
+		return nil, errors.New("неверный год")
+	}
+
+	if day.IsZero() {
+		return nil, errors.New("некорректная дата: zero time")
+	}
 
 	if now.After(endTime) {
 		day = day.AddDate(0, 0, 1)
@@ -28,7 +38,6 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 
 	var interval time.Duration
 	if timesPerDay == 1 {
-		slog.Info("das", startTime.Add(duration/2))
 		scheduleTimes = append(scheduleTimes, startTime.Add(duration/2))
 		return scheduleTimes, nil
 	}

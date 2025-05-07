@@ -87,12 +87,9 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 			assert.Len(t, schedule, tt.expectedLength)
 
 			for _, s := range schedule {
-				hour := s.Hour()
-				assert.GreaterOrEqual(t, hour, 8)
-				assert.LessOrEqual(t, hour, 22)
-
-				minute := s.Minute()
-				assert.True(t, minute%15 == 0)
+				assert.GreaterOrEqual(t, s.Hour(), 8)
+				assert.LessOrEqual(t, s.Hour(), 22)
+				assert.True(t, s.Minute()%15 == 0)
 			}
 			if len(tt.expextedHours) > 0 {
 				for i, s := range schedule {
