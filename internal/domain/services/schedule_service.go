@@ -143,14 +143,18 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint64) ([]time.Ti
 
 	schedule, err := s.scheduleRepo.FindSchedule(userID, scheduleID)
 	if err != nil {
-		slog.Error("Ошибка нахождения расписания",
+		slog.Error("ошибка нахождения расписания",
 			slog.Uint64("user_id", userID),
 			slog.Uint64("schedule_id", scheduleID),
 			slog.String("error", err.Error()))
 		return nil, err
 	}
-
-	return utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
+	res, err := utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
+	if err != nil {
+		slog.Info("ошибка гена расписания", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, error) {
