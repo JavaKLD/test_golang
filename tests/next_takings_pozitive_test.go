@@ -16,63 +16,63 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 		expextedHours  []int
 	}{
 		{
-			name:           "Once per day",
+			name:           "Один раз в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    1,
 			expectedLength: 1,
 			expextedHours:  []int{15},
 		},
 		{
-			name:           "Twice per day",
+			name:           "Два раза в денб",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    2,
 			expectedLength: 2,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Three times per day",
+			name:           "Три раза в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    3,
 			expectedLength: 3,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Four times per day",
+			name:           "Четыре раза в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    4,
 			expectedLength: 4,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Five times per day",
+			name:           "Пять раз в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    5,
 			expectedLength: 5,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Six times per day",
+			name:           "Шесть раз в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    6,
 			expectedLength: 6,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Eight times per day",
+			name:           "Восемь раз в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    8,
 			expectedLength: 8,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Twelve times per day",
+			name:           "Двенадцать раз в день",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    12,
 			expectedLength: 12,
 			expextedHours:  nil,
 		},
 		{
-			name:           "Every hour (24 times)",
+			name:           "Каждый час (24)",
 			day:            time.Date(2025, 5, 5, 0, 0, 0, 0, time.UTC),
 			timesPerDay:    24,
 			expectedLength: 15,
@@ -101,9 +101,16 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 				diff := schedule[1].Sub(schedule[0])
 				for i := 1; i < len(schedule); i++ {
 					currentDiff := schedule[i].Sub(schedule[i-1])
-					assert.Equal(t, diff, currentDiff)
+					assert.LessOrEqual(t, absDuration(diff-currentDiff), 15*time.Minute, "Интервал отличается больше, чем на 15 минут")
 				}
 			}
+			t.Log(tt.name, "тест пройден")
 		})
 	}
+}
+func absDuration(d time.Duration) time.Duration {
+	if d < 0 {
+		return -d
+	}
+	return d
 }

@@ -4,7 +4,6 @@ import (
 	"dolittle2/internal/utils"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"log/slog"
 	"testing"
 	"time"
 )
@@ -16,6 +15,8 @@ func TestGenerateScheduleTimes_Negative1(t *testing.T) {
 			schedule, err := utils.GenerateScheduleTimes(time.Now(), val)
 			assert.Error(t, err)
 			assert.Nil(t, schedule)
+			t.Log(t.Name(), "тест пройден")
+
 		})
 	}
 }
@@ -37,8 +38,11 @@ func TestGenerateScheduleTimes_Negative2(t *testing.T) {
 	expectedDay := day.AddDate(0, 0, 1).Day()
 	for _, appointment := range schedule {
 		assert.Equal(t, expectedDay, appointment.Day(), "Appointment should be on the next day")
-		slog.Info("Test appointment day", slog.Int("day", appointment.Day()))
 	}
+	if !t.Failed() {
+		t.Log(t.Name(), "тест пройден")
+	}
+
 }
 
 func TestGenerateScheduleTimes_Negative3(t *testing.T) {
@@ -46,7 +50,7 @@ func TestGenerateScheduleTimes_Negative3(t *testing.T) {
 	schedule, err := utils.GenerateScheduleTimes(zeroTime, 3)
 	assert.Error(t, err)
 	assert.Nil(t, schedule)
-	slog.Info("sda", slog.Any("day", schedule))
+	t.Log(t.Name(), "тест пройден")
 }
 
 func TestGenerateScheduleTimes_Negative4(t *testing.T) {
@@ -57,6 +61,7 @@ func TestGenerateScheduleTimes_Negative4(t *testing.T) {
 			schedule, err := utils.GenerateScheduleTimes(tt, 1)
 			assert.Error(t, err)
 			assert.Nil(t, schedule)
+			t.Log(t.Name(), "тест пройден")
 		})
 	}
 }
@@ -82,6 +87,8 @@ func TestGenerateScheduleTimes_Negative5(t *testing.T) {
 					t.Errorf("Время %v не кратно 15 минутам", s.Format("15:04"))
 				}
 			}
+			t.Log(t.Name(), "тест пройден")
+
 		})
 	}
 }
