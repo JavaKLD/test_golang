@@ -33,20 +33,19 @@ func GenerateScheduleTimes(day time.Time, timesPerDay uint64) ([]time.Time, erro
 		endTime = time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
 	}
 
-	startTime = time.Date(day.Year(), day.Month(), day.Day(), 8, 0, 0, 0, day.Location())
-	endTime = time.Date(day.Year(), day.Month(), day.Day(), 22, 0, 0, 0, day.Location())
-
-	var interval time.Duration
 	if timesPerDay == 1 {
 		scheduleTimes = append(scheduleTimes, startTime.Add(duration/2))
 		return scheduleTimes, nil
 	}
+
 	if timesPerDay == 24 {
 		for i := 0; uint64(i) <= 14; i++ {
 			scheduleTimes = append(scheduleTimes, startTime.Add(time.Duration(i)*time.Hour))
 		}
 		return scheduleTimes, nil
 	}
+
+	interval := duration / time.Duration(timesPerDay-1)
 
 	for i := 0; uint64(i) < timesPerDay; i++ {
 		appointmentTime := startTime.Add(time.Duration(i) * interval)

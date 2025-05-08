@@ -28,7 +28,7 @@ func NewScheduleController(scheduleService scheduleService) *ScheduleRestServer 
 	return &ScheduleRestServer{scheduleService: scheduleService}
 }
 
-func (s *ScheduleRestServer) postSchedule(ctx echo.Context) error {
+func (s *ScheduleRestServer) PostSchedule(ctx echo.Context) error {
 	var req openapi.ScheduleRequest
 
 	err := ctx.Bind(&req)
@@ -39,6 +39,7 @@ func (s *ScheduleRestServer) postSchedule(ctx echo.Context) error {
 	schedule := &models.Schedule{
 		Aid_name:    req.AidName,
 		Aid_per_day: uint64(req.AidPerDay),
+		Duration:    int64(req.Duration),
 		UserID:      uint64(req.UserId),
 		Create_at:   utils.RoundTime(time.Now()),
 	}
@@ -57,7 +58,7 @@ func (s *ScheduleRestServer) postSchedule(ctx echo.Context) error {
 	})
 }
 
-func (s *ScheduleRestServer) getUserSchedule(ctx echo.Context) error {
+func (s *ScheduleRestServer) GetUserSchedule(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 	if queryParam == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "не указан user_id"})
@@ -83,7 +84,7 @@ func (s *ScheduleRestServer) getUserSchedule(ctx echo.Context) error {
 	})
 }
 
-func (s *ScheduleRestServer) getSchedule(ctx echo.Context) error {
+func (s *ScheduleRestServer) GetSchedule(ctx echo.Context) error {
 	queryParamID := strings.TrimSpace(ctx.QueryParam("user_id"))
 	queryParamSchedule := strings.TrimSpace(ctx.QueryParam("schedule_id"))
 
@@ -115,7 +116,7 @@ func (s *ScheduleRestServer) getSchedule(ctx echo.Context) error {
 
 }
 
-func (s *ScheduleRestServer) getNextTakings(ctx echo.Context) error {
+func (s *ScheduleRestServer) GetNextTakings(ctx echo.Context) error {
 	queryParam := strings.TrimSpace(ctx.QueryParam("user_id"))
 
 	if queryParam == "" {

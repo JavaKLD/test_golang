@@ -9,8 +9,8 @@ import (
 func InitRoutes(e *echo.Echo, s *ScheduleRestServer) {
 	e.Use(middleware.ReqLogger)
 
-	e.POST("/schedule", s.postSchedule)
-	e.GET("/schedules", s.getUserSchedule)
-	e.GET("/schedule", s.getSchedule)
-	e.GET("/next_takings", s.getNextTakings)
+	e.POST("/schedule", s.PostSchedule)
+	e.GET("/schedules", s.GetUserSchedule)
+	e.GET("/schedule", s.GetSchedule)
+	e.GET("/next_takings", s.GetNextTakings)
 }

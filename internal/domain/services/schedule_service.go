@@ -1,7 +1,6 @@
 package services
 
 import (
-	"dolittle2/internal/config"
 	"dolittle2/internal/domain/models"
 	"dolittle2/internal/utils"
 	"errors"
@@ -20,11 +19,13 @@ type scheduleRepo interface {
 
 type ScheduleService struct {
 	scheduleRepo scheduleRepo
+	endTime      time.Duration
 }
 
-func NewService(scheduleRepo scheduleRepo) *ScheduleService {
+func NewService(scheduleRepo scheduleRepo, endTime time.Duration) *ScheduleService {
 	return &ScheduleService{
 		scheduleRepo: scheduleRepo,
+		endTime:      endTime,
 	}
 }
 
@@ -149,6 +150,7 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint64) ([]time.Ti
 			slog.String("error", err.Error()))
 		return nil, err
 	}
+
 	res, err := utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
 	if err != nil {
 		slog.Info("ошибка гена расписания", err)
@@ -163,7 +165,7 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 		slog.Uint64("user_id", userID),
 	)
 	now := time.Now()
-	end := now.Add(config.LoadConfig())
+	end := now.Add(s.endTime)
 
 	schedules, err := s.scheduleRepo.NextTakings(userID)
 	if err != nil {
@@ -173,10 +175,19 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 		)
 		return nil, err
 	}
-
 	nextTakings := make(map[string][]string)
 
 	for _, schedule := range schedules {
+		endTime := schedule.Create_at.Add(time.Duration(schedule.Duration) * 24 * time.Hour)
+		if now.After(endTime) {
+			slog.Error(
+				"Время приема лекарства истекло",
+				slog.Uint64("user_id", userID),
+				slog.Uint64("schedule_id", schedule.ID),
+				slog.Any("end", endTime),
+			)
+			continue
+		}
 		times, err := utils.GenerateScheduleTimes(now, schedule.Aid_per_day)
 		if err != nil {
 			slog.Error(
@@ -219,6 +230,6 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 	if len(nextTakings) == 0 {
 		return nil, errors.New("Нет ближайших приемов")
 	}
-
+	slog.Info("nextTakings", slog.Any("&&", nextTakings))
 	return nextTakings, nil
 }

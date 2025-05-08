@@ -2,6 +2,7 @@ package main
 
 import (
 	"dolittle2/database/migrations"
+	"dolittle2/internal/config"
 	"dolittle2/internal/domain/repos"
 	"dolittle2/internal/domain/services"
 	"dolittle2/internal/server"
@@ -27,9 +28,9 @@ func main() {
 	if err != nil {
 		slog.Error("Ошибка миграции", "error:", err)
 	}
-
+	cfg := config.LoadConfig()
 	repo := repos.NewScheduleRepo(db)
-	service := services.NewService(repo)
+	service := services.NewService(repo, cfg)
 	controller := server.NewScheduleController(service)
 
 	go func() {

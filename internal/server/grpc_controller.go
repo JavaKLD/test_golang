@@ -19,7 +19,7 @@ import (
 
 type ScheduleServer struct {
 	pb.UnimplementedScheduleServiceServer
-	Service *services.ScheduleService
+	scheduleService scheduleService
 }
 
 func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateScheduleRequest) (*pb.CreateScheduleResponse, error) {
@@ -32,7 +32,7 @@ func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateSched
 
 	schedule.Create_at = utils.RoundTime(time.Now())
 
-	id, err := s.Service.CreateSchedule(schedule)
+	id, err := s.scheduleService.CreateSchedule(schedule)
 	if err != nil {
 		if err.Error() == "Запись с таким именем для пользователя уже существует" {
 			return nil, status.Errorf(
@@ -61,7 +61,7 @@ func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserSch
 			"Не может быть равным 0",
 		)
 	}
-	exists, _ := s.Service.CheckUserExists(userID)
+	exists, _ := s.scheduleService.CheckUserExists(userID)
 	if !exists {
 		return nil, status.Error(
 			codes.InvalidArgument,
@@ -69,7 +69,7 @@ func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserSch
 		)
 	}
 
-	scheduleID, err := s.Service.FindByUserID(userID)
+	scheduleID, err := s.scheduleService.FindByUserID(userID)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.Internal,
@@ -94,7 +94,7 @@ func (s *ScheduleServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReq
 		)
 	}
 
-	scheduleTimes, err := s.Service.GetDailySchedule(userID, scheduleID)
+	scheduleTimes, err := s.scheduleService.GetDailySchedule(userID, scheduleID)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.InvalidArgument,
@@ -122,7 +122,7 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 		)
 	}
 
-	exists, _ := s.Service.CheckUserExists(userID)
+	exists, _ := s.scheduleService.CheckUserExists(userID)
 	if !exists {
 		return nil, status.Error(
 			codes.InvalidArgument,
@@ -130,7 +130,7 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 		)
 	}
 
-	nextTakings, err := s.Service.GetNextTakings(userID)
+	nextTakings, err := s.scheduleService.GetNextTakings(userID)
 	if err != nil {
 		if err.Error() == "Нет ближайших приемов" {
 			return &pb.GetNextTakingsResponse{
@@ -172,7 +172,7 @@ func StartGRPCServer(service *services.ScheduleService) {
 
 	pb.RegisterScheduleServiceServer(
 		grpcServer,
-		&ScheduleServer{Service: service},
+		&ScheduleServer{scheduleService: service},
 	)
 
 	logger.Info("gRPC сервер на порте 50051")
