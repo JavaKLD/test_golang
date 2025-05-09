@@ -9,6 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type ctxKeyTraceID struct{}
+
 func ReqLogger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		traceID := c.Request().Header.Get("X-TRACE-ID")
@@ -16,7 +18,7 @@ func ReqLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			traceID = uuid.New().String()
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "trace_id", traceID)
+		ctx := context.WithValue(c.Request().Context(), ctxKeyTraceID{}, traceID)
 		c.SetRequest(c.Request().WithContext(ctx))
 
 		start := time.Now()
@@ -27,9 +29,9 @@ func ReqLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			"method", c.Request().Method,
 			"url", c.Request().URL.String(),
 			"headers", c.Request().Header,
-			"params", MaskSesitiveHttp(c),
+			"params", MaskSesitiveHTTP(c),
 			"received_at", time.Now().Format(time.RFC3339),
-			"ip_adress", c.RealIP(),
+			"ip_address", c.RealIP(),
 		)
 
 		slog.Info("outgoing response",
@@ -42,5 +44,4 @@ func ReqLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return err
 	}
-
 }

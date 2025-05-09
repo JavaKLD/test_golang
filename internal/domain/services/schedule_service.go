@@ -11,7 +11,7 @@ import (
 type scheduleRepo interface {
 	CreateSchedule(schedule *models.Schedule) (uint64, error)
 	AidNameExists(aidName string, userID uint64) (bool, error)
-	UserIdExists(userID uint64) (bool, error)
+	UserIDExists(userID uint64) (bool, error)
 	FindByUserID(userID uint64) ([]uint64, error)
 	FindSchedule(userID, scheduleID uint64) (*models.Schedule, error)
 	NextTakings(userID uint64) ([]models.Schedule, error)
@@ -32,11 +32,11 @@ func NewService(scheduleRepo scheduleRepo, endTime time.Duration) *ScheduleServi
 func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint64, error) {
 	slog.Info(
 		"Создание расписания",
-		slog.String("aid_name", schedule.Aid_name),
+		slog.String("aid_name", schedule.AidName),
 		slog.Uint64("user_id", schedule.UserID),
 	)
 
-	exists, err := s.scheduleRepo.AidNameExists(schedule.Aid_name, schedule.UserID)
+	exists, err := s.scheduleRepo.AidNameExists(schedule.AidName, schedule.UserID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при проверке существования имени лекарства",
@@ -48,7 +48,7 @@ func (s *ScheduleService) CreateSchedule(schedule *models.Schedule) (uint64, err
 	if exists {
 		slog.Error(
 			"Расписание с таким именем уже существует",
-			slog.String("aid_name", schedule.Aid_name),
+			slog.String("aid_name", schedule.AidName),
 		)
 		return 0, errors.New("Запись с таким именем для пользователя уже существует")
 	}
@@ -110,7 +110,7 @@ func (s *ScheduleService) CheckUserExists(userID uint64) (bool, error) {
 		slog.Uint64("user_id", userID),
 	)
 
-	exists, err := s.scheduleRepo.UserIdExists(userID)
+	exists, err := s.scheduleRepo.UserIDExists(userID)
 	if err != nil {
 		slog.Error(
 			"Ошибка при проверке существования пользователя",
@@ -151,9 +151,9 @@ func (s *ScheduleService) GetDailySchedule(userID, scheduleID uint64) ([]time.Ti
 		return nil, err
 	}
 
-	res, err := utils.GenerateScheduleTimes(time.Now(), schedule.Aid_per_day)
+	res, err := utils.GenerateScheduleTimes(time.Now(), schedule.AidPerDay, time.Now)
 	if err != nil {
-		slog.Info("ошибка гена расписания", err)
+		slog.Info("ошибка гена расписания")
 		return nil, err
 	}
 	return res, nil
@@ -164,6 +164,7 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 		"Запуск сервиса следующих приемов для пользователя",
 		slog.Uint64("user_id", userID),
 	)
+
 	now := time.Now()
 	end := now.Add(s.endTime)
 
@@ -175,10 +176,11 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 		)
 		return nil, err
 	}
+
 	nextTakings := make(map[string][]string)
 
 	for _, schedule := range schedules {
-		endTime := schedule.Create_at.Add(time.Duration(schedule.Duration) * 24 * time.Hour)
+		endTime := schedule.CreatedAt.Add(time.Duration(schedule.Duration) * 24 * time.Hour)
 		if now.After(endTime) {
 			slog.Error(
 				"Время приема лекарства истекло",
@@ -188,19 +190,20 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 			)
 			continue
 		}
-		times, err := utils.GenerateScheduleTimes(now, schedule.Aid_per_day)
+
+		times, err := utils.GenerateScheduleTimes(now, schedule.AidPerDay, time.Now)
 		if err != nil {
 			slog.Error(
 				"Ошибка генерации времени расписания",
 				slog.String("error", err.Error()),
-				slog.String("aid_name", schedule.Aid_name),
+				slog.String("aid_name", schedule.AidName),
 				slog.Uint64("user_id", userID),
 			)
 			return nil, err
 		}
 
 		var nextPer []time.Time
-		createEndTime := schedule.Create_at.Add(time.Duration(schedule.Duration*24) * time.Hour)
+		createEndTime := schedule.CreatedAt.Add(time.Duration(schedule.Duration*24) * time.Hour)
 
 		for _, t := range times {
 			if t.After(now) && t.Before(end) && t.Before(createEndTime) {
@@ -208,6 +211,7 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 					"Добавление подходящего времени",
 					slog.Time("time", t),
 				)
+
 				nextPer = append(nextPer, t)
 			}
 		}
@@ -220,16 +224,18 @@ func (s *ScheduleService) GetNextTakings(userID uint64) (map[string][]string, er
 		if formattedTimes != nil {
 			slog.Info(
 				"Добавление времени для лекарства",
-				slog.String("Название лекарства", schedule.Aid_name),
+				slog.String("Название лекарства", schedule.AidName),
 				slog.Any("Время", formattedTimes),
 			)
-			nextTakings[schedule.Aid_name] = formattedTimes
+
+			nextTakings[schedule.AidName] = formattedTimes
 		}
 	}
 
 	if len(nextTakings) == 0 {
 		return nil, errors.New("Нет ближайших приемов")
 	}
+
 	slog.Info("nextTakings", slog.Any("&&", nextTakings))
 	return nextTakings, nil
 }

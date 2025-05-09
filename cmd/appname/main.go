@@ -28,6 +28,7 @@ func main() {
 	if err != nil {
 		slog.Error("Ошибка миграции", "error:", err)
 	}
+
 	cfg := config.LoadConfig()
 	repo := repos.NewScheduleRepo(db)
 	service := services.NewService(repo, cfg)

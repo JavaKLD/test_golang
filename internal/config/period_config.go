@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -11,13 +11,14 @@ import (
 func LoadConfig() time.Duration {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Ошибка загрузки env файла", err)
+		slog.Error("Ошибка загрузки env файла", slog.Any("error", err))
 	}
 
 	periodStr := os.Getenv("NEXT_TAKING_PERIOD")
 	period, err := time.ParseDuration(periodStr)
+
 	if err != nil {
-		log.Fatal("Ошибка прасинга периода", err)
+		slog.Error("Ошибка прасинга периода", slog.Any("error", err))
 	}
 
 	return period

@@ -8,15 +8,15 @@ func MaskSensitiveFields(req interface{}) interface{} {
 	switch r := req.(type) {
 	case *pb.CreateScheduleRequest:
 		return struct {
-			Aid_name    string
-			Aid_per_day uint64
-			Duration    int64
-			UserID      string
+			AidName   string
+			AidPerDay uint64
+			Duration  int64
+			UserID    string
 		}{
-			Aid_name:    r.AidName,
-			Aid_per_day: r.AidPerDay,
-			Duration:    r.Duration,
-			UserID:      "***",
+			AidName:   r.AidName,
+			AidPerDay: r.AidPerDay,
+			Duration:  r.Duration,
+			UserID:    "***",
 		}
 	case *pb.GetUserScheduleRequest:
 		return struct {
@@ -41,5 +41,4 @@ func MaskSensitiveFields(req interface{}) interface{} {
 	default:
 		return ""
 	}
-
 }

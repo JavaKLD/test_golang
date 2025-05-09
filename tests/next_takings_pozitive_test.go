@@ -82,7 +82,7 @@ func TestGenerateScheduleTimes_Pozitive(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			schedule, err := utils.GenerateScheduleTimes(tt.day, tt.timesPerDay)
+			schedule, err := utils.GenerateScheduleTimes(tt.day, tt.timesPerDay, time.Now)
 			assert.NoError(t, err)
 			assert.Len(t, schedule, tt.expectedLength)
 
