@@ -14,8 +14,8 @@ import (
 
 type scheduleService interface {
 	CreateSchedule(schedule *models.Schedule) (uint64, error)
-	FindByUserID(userId uint64) ([]uint64, error)
-	CheckUserExists(userId uint64) (bool, error)
+	FindByUserID(userID uint64) ([]uint64, error)
+	CheckUserExists(userID uint64) (bool, error)
 	GetDailySchedule(userId, scheduleID uint64) ([]time.Time, error)
 	GetNextTakings(userID uint64) (map[string][]string, error)
 }
@@ -37,20 +37,23 @@ func (s *ScheduleRestServer) PostSchedule(ctx echo.Context) error {
 	}
 
 	schedule := &models.Schedule{
-		Aid_name:    req.AidName,
-		Aid_per_day: uint64(req.AidPerDay),
-		Duration:    int64(req.Duration),
-		UserID:      uint64(req.UserId),
-		Create_at:   utils.RoundTime(time.Now()),
+		AidName:   req.AidName,
+		AidPerDay: uint64(req.AidPerDay),
+		Duration:  int64(req.Duration),
+		UserID:    uint64(req.UserId),
+		CreatedAt: utils.RoundTime(time.Now()),
+	}
+
+	if req.AidPerDay <= 0 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "aid_per_day должен быть больше 0"})
 	}
 
 	id, err := s.scheduleService.CreateSchedule(schedule)
 	if err != nil {
 		if err.Error() == "Запись с таким именем для пользователя уже существует" {
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Запись с таким aid_name для данного пользователя уже существует"})
-		} else {
-			return ctx.JSON(http.StatusUnprocessableEntity, "Лекарства принимаются с 8 до 22")
 		}
+		return ctx.JSON(http.StatusUnprocessableEntity, "Лекарства принимаются с 8 до 22")
 	}
 	return ctx.JSON(http.StatusCreated, map[string]interface{}{
 		"id":      id,
@@ -66,10 +69,11 @@ func (s *ScheduleRestServer) GetUserSchedule(ctx echo.Context) error {
 
 	userID, err := strconv.ParseUint(queryParam, 10, 32)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "неверный формат user_id"})
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "user_id должен быть числом"})
 	}
 
 	scheduleID, err := s.scheduleService.FindByUserID(userID)
+
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "не удалось получить данные"})
 	}
@@ -113,7 +117,6 @@ func (s *ScheduleRestServer) GetSchedule(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, map[string][]string{"schedule": formattedTimes})
-
 }
 
 func (s *ScheduleRestServer) GetNextTakings(ctx echo.Context) error {

@@ -2,7 +2,7 @@ package connectors
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -13,7 +13,7 @@ import (
 func InitDB() (*gorm.DB, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		slog.Error("Error loading .env file")
 	}
 
 	user := os.Getenv("DB_USER")
@@ -27,7 +27,7 @@ func InitDB() (*gorm.DB, error) {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect db", err)
+		slog.Error("Failed to connect db", slog.Any("error", err))
 	}
 
 	return db, nil

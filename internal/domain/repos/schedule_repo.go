@@ -27,13 +27,14 @@ func (r *ScheduleRepo) AidNameExists(aidName string, userID uint64) (bool, error
 	err := r.db.Model(&models.Schedule{}).
 		Where("aid_name = ? AND user_id = ?", aidName, userID).
 		Count(&count).Error
+
 	if err != nil {
 		return false, err
 	}
 	return count > 0, nil
 }
 
-func (r *ScheduleRepo) UserIdExists(userID uint64) (bool, error) {
+func (r *ScheduleRepo) UserIDExists(userID uint64) (bool, error) {
 	var count int64
 	err := r.db.Model(&models.Schedule{}).
 		Where("user_id = ?", userID).
@@ -55,6 +56,7 @@ func (r *ScheduleRepo) FindByUserID(userID uint64) ([]uint64, error) {
 func (r *ScheduleRepo) FindSchedule(userID, scheduleID uint64) (*models.Schedule, error) {
 	var schedule models.Schedule
 	err := r.db.Where("user_id = ? AND id = ?", userID, scheduleID).First(&schedule).Error
+
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +66,7 @@ func (r *ScheduleRepo) FindSchedule(userID, scheduleID uint64) (*models.Schedule
 func (r *ScheduleRepo) NextTakings(userID uint64) ([]models.Schedule, error) {
 	var schedules []models.Schedule
 	err := r.db.Where("user_id = ?", userID).Find(&schedules).Error
+
 	if err != nil {
 		return nil, err
 	}

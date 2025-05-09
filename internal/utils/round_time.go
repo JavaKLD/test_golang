@@ -2,10 +2,16 @@ package utils
 
 import "time"
 
+const (
+	roundingInterval = 15
+	maxMinutesInHour = 60
+)
+
 func RoundTime(t time.Time) time.Time {
-	minRound := ((t.Minute() + 14) / 15) * 15
+	minRound := ((t.Minute() + (roundingInterval - 1)) / roundingInterval) * roundingInterval
 	newHour := t.Hour()
-	if minRound >= 60 {
+
+	if minRound >= maxMinutesInHour {
 		minRound = 0
 		newHour++
 	}

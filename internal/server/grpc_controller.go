@@ -6,7 +6,7 @@ import (
 	"dolittle2/internal/domain/services"
 	"dolittle2/internal/utils"
 	"dolittle2/pkg/middleware"
-	pb "dolittle2/proto"
+	"dolittle2/proto"
 	"log/slog"
 	"net"
 	"strings"
@@ -18,19 +18,19 @@ import (
 )
 
 type ScheduleServer struct {
-	pb.UnimplementedScheduleServiceServer
+	proto.UnimplementedScheduleServiceServer
 	scheduleService scheduleService
 }
 
-func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateScheduleRequest) (*pb.CreateScheduleResponse, error) {
+func (s *ScheduleServer) CreateSchedule(_ context.Context, req *proto.CreateScheduleRequest) (*proto.CreateScheduleResponse, error) {
 	schedule := &models.Schedule{
-		Aid_name:    req.AidName,
-		Aid_per_day: req.AidPerDay,
-		UserID:      req.UserId,
-		Duration:    req.Duration,
+		AidName:   req.AidName,
+		AidPerDay: req.AidPerDay,
+		UserID:    req.UserId,
+		Duration:  req.Duration,
 	}
 
-	schedule.Create_at = utils.RoundTime(time.Now())
+	schedule.CreatedAt = utils.RoundTime(time.Now())
 
 	id, err := s.scheduleService.CreateSchedule(schedule)
 	if err != nil {
@@ -47,13 +47,13 @@ func (s *ScheduleServer) CreateSchedule(ctx context.Context, req *pb.CreateSched
 		}
 	}
 
-	return &pb.CreateScheduleResponse{
+	return &proto.CreateScheduleResponse{
 		Id:      id,
 		Message: "Запись создана",
 	}, nil
 }
 
-func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserScheduleRequest) (*pb.GetUserScheduleResponse, error) {
+func (s *ScheduleServer) GetUserSchedule(_ context.Context, req *proto.GetUserScheduleRequest) (*proto.GetUserScheduleResponse, error) {
 	userID := req.GetId()
 	if userID == 0 {
 		return nil, status.Errorf(
@@ -62,6 +62,7 @@ func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserSch
 		)
 	}
 	exists, _ := s.scheduleService.CheckUserExists(userID)
+
 	if !exists {
 		return nil, status.Error(
 			codes.InvalidArgument,
@@ -78,13 +79,13 @@ func (s *ScheduleServer) GetUserSchedule(ctx context.Context, req *pb.GetUserSch
 		)
 	}
 
-	return &pb.GetUserScheduleResponse{
+	return &proto.GetUserScheduleResponse{
 		Message:   "Успешный ответ с расписанием",
 		Schedules: scheduleID,
 	}, nil
 }
 
-func (s *ScheduleServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetDailyScheduleResponse, error) {
+func (s *ScheduleServer) GetSchedule(_ context.Context, req *proto.GetScheduleRequest) (*proto.GetDailyScheduleResponse, error) {
 	userID := req.GetUserId()
 	scheduleID := req.GetScheduleId()
 	if userID == 0 || scheduleID == 0 {
@@ -107,12 +108,12 @@ func (s *ScheduleServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReq
 		formattedTimes = append(formattedTimes, t.Format("15:04"))
 	}
 
-	return &pb.GetDailyScheduleResponse{
+	return &proto.GetDailyScheduleResponse{
 		FormattedTimes: formattedTimes,
 	}, nil
 }
 
-func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTakingsRequest) (*pb.GetNextTakingsResponse, error) {
+func (s *ScheduleServer) GetNextTakings(_ context.Context, req *proto.GetNextTakingsRequest) (*proto.GetNextTakingsResponse, error) {
 	userID := req.GetUserId()
 
 	if userID == 0 {
@@ -133,7 +134,7 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 	nextTakings, err := s.scheduleService.GetNextTakings(userID)
 	if err != nil {
 		if err.Error() == "Нет ближайших приемов" {
-			return &pb.GetNextTakingsResponse{
+			return &proto.GetNextTakingsResponse{
 				Message: "Нет ближайших приемов",
 			}, nil
 		}
@@ -144,15 +145,15 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 		)
 	}
 
-	var schedule []*pb.KeyValuePair
+	var schedule []*proto.KeyValuePair
 	for k, v := range nextTakings {
-		schedule = append(schedule, &pb.KeyValuePair{
+		schedule = append(schedule, &proto.KeyValuePair{
 			Key:   k,
 			Value: strings.Join(v, ", "),
 		})
 	}
 
-	return &pb.GetNextTakingsResponse{
+	return &proto.GetNextTakingsResponse{
 		Schedule: schedule,
 		Message:  "Успешно",
 	}, nil
@@ -161,21 +162,30 @@ func (s *ScheduleServer) GetNextTakings(ctx context.Context, req *pb.GetNextTaki
 func StartGRPCServer(service *services.ScheduleService) {
 	logger := slog.Default()
 
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		logger.Error("Ошибка подключения gRPC сервера")
+	var lis net.Listener
+	var err error
+
+	for {
+		lis, err = net.Listen("tcp", "127.0.0.1:50051")
+		if err != nil {
+			logger.Error("Ошибка подключения gRPC сервера", "error", err)
+			time.Sleep(time.Second)
+			continue
+		}
+		break
 	}
 
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.LoggingInterceptor(logger)),
 	)
 
-	pb.RegisterScheduleServiceServer(
+	proto.RegisterScheduleServiceServer(
 		grpcServer,
 		&ScheduleServer{scheduleService: service},
 	)
 
 	logger.Info("gRPC сервер на порте 50051")
+
 	err = grpcServer.Serve(lis)
 	if err != nil {
 		logger.Error("Ошибка запуска gRPC сервера", "error", err)
