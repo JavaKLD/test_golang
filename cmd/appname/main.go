@@ -1,7 +1,6 @@
 package main
 
 import (
-	"dolittle2/database/migrations"
 	"dolittle2/internal/config"
 	"dolittle2/internal/domain/repos"
 	"dolittle2/internal/domain/services"
@@ -22,11 +21,6 @@ func main() {
 	db, err := connectors.InitDB()
 	if err != nil {
 		slog.Error("Ошибка подключения к бд", "error: ", err)
-	}
-
-	err = migrations.Migration(db)
-	if err != nil {
-		slog.Error("Ошибка миграции", "error:", err)
 	}
 
 	cfg := config.LoadConfig()

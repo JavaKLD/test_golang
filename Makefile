@@ -1,3 +1,6 @@
+include .env
+export
+
 GENERATOR=openapitools/openapi-generator-cli
 GEN_LANG=go-server
 GEN_OUTPUT=gen
@@ -9,6 +12,9 @@ COVERAGE_FILE := coverage.out
 TEST=go test
 COVERAGE_FILE=coverage.out
 COVERAGE_HTML=coverage.html
+TEST_DOCKER_COMPOSE := docker compose --file docker-compose.yml
+
+DB_URL=mysql://$(DB_USER):$(DB_PASSWORD)@tcp($(DB_HOST):$(DB_PORT))/$(DB_NAME)
 
 
 run:
@@ -30,8 +36,31 @@ test-unit:
 test-integration:
 	go test -coverpkg=dolittle2/internal/server -coverprofile=$(COVERAGE_FILE) ./tests
 
+#Миграции
+migrate-up:
+	migrate -path ./database/migrations -database "$(DB_URL)" up
+
+#Откат миграции
+migrate-down:
+	migrate -path ./database/migrations -database "$(DB_URL)" down
+
+test-infrastructure:
+	$(TEST_DOCKER_COMPOSE) up --detach --build
+	$(TEST_DOCKER_COMPOSE) logs --follow
+
+test-infrastructure-down:
+	$(TEST_DOCKER_COMPOSE) down --remove-orphans
+#
+docker-migrate-up:
+	docker run --rm \
+      -e GOOSE_DRIVER=mysql \
+      -e GOOSE_DBSTRING="root:strong_password@tcp(mysql:3306)/app_db?parseTime=true" \
+      --network=dolittle2_default \
+      goose-migration
+
 #Загрузка зависимостей
 install-deps:
+	go install go install github.com/dkorunic/betteralign/cmd/betteralign@latest
 	go install github.com/google/uuid v1.6.0
 	go install github.com/joho/godotenv v1.5.1
 	go install github.com/labstack/echo/v4 v4.13.3
@@ -41,9 +70,11 @@ install-deps:
 	go install gorm.io/driver/mysql v1.5.7
 	go install gorm.io/gorm v1.26.0
 
+#Линтер
 betteralign:
-	betteralign -apply ./...
+	$(GOPATH)/bin/betteralign ./...
 
+#Docker
 
 #OpenAPI
 generate:
